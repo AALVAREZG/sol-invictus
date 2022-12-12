@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>My test page</title>
+  </head>
+  <body>
+    <p>This is a location_list</p>
+    {% if location_list %}
+    <ul>
+    {% for location in location_list %}
+        <li><a href="/plotdata/{{ location.id }}/">{{ location.loc_description_text }}</a></li>
+    {% endfor %}
+    </ul>
+    {% else %}
+        <p>No locations available.</p>
+    {% endif %}
+  </body>
+</html>
+
+
