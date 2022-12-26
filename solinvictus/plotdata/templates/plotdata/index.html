@@ -9,7 +9,9 @@
     {% if location_list %}
     <ul>
     {% for location in location_list %}
-        <li><a href="/plotdata/{{ location.id }}/">{{ location.loc_description_text }}</a></li>
+    </a>
+        <li><a href="/plotdata/{{ location.id }}/">Hardcoded location {{ location.loc_description_text }}</a></li> 
+        <li><a href="{% url 'plotdata:edit' location.id %}">Edit location: {{ location.loc_description_text }}</a></li>
     {% endfor %}
     </ul>
     {% else %}

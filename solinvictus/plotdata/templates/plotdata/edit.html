@@ -1,0 +1,12 @@
+
+<form action="{% url 'plotdata:save' location.id %}" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <legend><h1>{{ location.loc_description_text }}</h1></legend>
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+        <input type="text" name="loc_id" value="{{location.id}}" readonly>
+        <input type="text" name="description" value="{{ location.loc_description_text }}">
+            
+    </fieldset>
+    <input type="submit" value="Save Edition">
+</form>

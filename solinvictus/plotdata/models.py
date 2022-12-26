@@ -12,7 +12,6 @@ class Location(models.Model):
         return f'Location: {self.loc_description_text}\n \
                             --> lat: {self.lat}, lon: {self.lon}'
 
-
 class Question(models.Model):
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
