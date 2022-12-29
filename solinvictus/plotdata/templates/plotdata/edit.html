@@ -1,4 +1,9 @@
 
+<header>
+    
+</header>
+<body>
+    
 <form action="{% url 'plotdata:save' location.id %}" method="post">
     {% csrf_token %}
     <fieldset>
@@ -8,5 +13,7 @@
         <input type="text" name="description" value="{{ location.loc_description_text }}">
             
     </fieldset>
+    
     <input type="submit" value="Save Edition">
 </form>
+</body>

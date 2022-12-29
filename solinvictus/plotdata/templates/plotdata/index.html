@@ -1,23 +1,92 @@
-<!DOCTYPE html>
-<html lang="en-US">
+
+{% load static %}
+
+{% load recursive_helper %}
+
+<style>
+  .json-table {
+    border-collapse: collapse;
+  }
+
+  .json-table td,
+  .json-table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+
+  .json-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  .json-table tr:hover {
+    background-color: #ddd;
+  }
+</style>
+
+
+
+<html>
   <head>
-    <meta charset="utf-8" />
-    <title>My test page</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin="">
+    </script>
+    <script>
+      function handlePaste(event) {
+        // Get the pasted content
+        var clipboardData = event.clipboardData || window.clipboardData;
+        //var pastedData = clipboardData.getData('Text');
+        var pastedData = clipboardData;
+        // Do something with the pasted data
+      }
+    </script>
   </head>
   <body>
-    <p>This is a location_list</p>
-    {% if location_list %}
-    <ul>
-    {% for location in location_list %}
-    </a>
-        <li><a href="/plotdata/{{ location.id }}/">Hardcoded location {{ location.loc_description_text }}</a></li> 
-        <li><a href="{% url 'plotdata:edit' location.id %}">Edit location: {{ location.loc_description_text }}</a></li>
-    {% endfor %}
-    </ul>
-    {% else %}
-        <p>No locations available.</p>
+    <legend><h1> Select position on map</h1></legend>
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <h4 id="loc_address">{{ geolocation.address }}</h4>   
+    {{ map_html|safe}}
+    
+    <form id="frm2" action="{% url 'plotdata:getLocation' %}" method="post">
+      {% csrf_token %}
+      
+      <fieldset>
+      <input type="input" id="latitude" name="latitude" value={{geolocation.latitude}}>
+      <input type="input" id="longitude" name="longitude" value={{geolocation.longitude}}>
+      </fieldset>
+      
+    <input type="submit" value="Get Results">
+    <h6>PVDATA</h6>
+    {% if pvdata %}
+   
+    {% block content %}
+    <table class="json-table">
+      {% for item in pvdata %}
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in item.items %}
+        <tr>
+          <td>{{ key }}</td>
+          <td>{{ value }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      {% endfor %}
+    </table>
+    {% endblock %}
+      
     {% endif %}
+    </form>
+       
   </body>
 </html>
-
-

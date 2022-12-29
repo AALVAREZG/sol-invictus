@@ -1,9 +1,25 @@
 
+{% load static %}
 
+<html>
+  <head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
 
-<legend><h1>{{ location.loc_description_text }}</h1></legend>
-{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-<ul>
-    <li>{{ location.lat }}</li>
-    <li>{{ location.lon }}</li>
-</ul>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin="">
+    </script>
+  </head>
+  <body>
+    <legend><h1>{{ geolocation.address }}</h1></legend>
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <legend><h4>Geolocation: {{ geolocation.latitude }}, {{ geolocation.longitude }}</h4></legend>
+        
+        {{ map_html|safe}}
+   
+  </body>
+</html>
+

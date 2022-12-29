@@ -15,9 +15,13 @@ app_name = 'plotdata'
 urlpatterns = [
     # ex: /plotdata/
     path('', views.index, name='index'),
+    path('<int:location_id>', views.index, name='index'),
+    # list of locations
+    path('list/', views.list, name='list'),
     # ex: /plotdata/2/
     # the 'name' value as called by the {% url %} template tag
-    path('<int:location_id>/', views.detail, name='detail'),
+    path('<int:location_id>/detail/', views.detail, name='detail'),
     path('<int:location_id>/edit/', views.edit, name='edit'),
     path('<int:location_id>/save/', views.save, name='save'),
+    path('getLocation/', views.getLocation, name='getLocation'),
 ]
