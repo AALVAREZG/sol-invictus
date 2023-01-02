@@ -4,8 +4,8 @@ from django.db import models
 
 
 class Location(models.Model):
-    lat = models.DecimalField(max_digits=8, decimal_places=3)
-    lon = models.DecimalField(max_digits=8, decimal_places=3)
+    lat = models.DecimalField(max_digits=8, decimal_places=4)
+    lon = models.DecimalField(max_digits=8, decimal_places=4)
     loc_description_text = models.CharField(max_length=200)
 
     def __str__(self):

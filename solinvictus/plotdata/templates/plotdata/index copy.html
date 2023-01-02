@@ -1,0 +1,62 @@
+
+
+
+<html>
+  <head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin=""/>
+
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+        integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+        crossorigin="">
+    </script>
+    
+  </head>
+  <body>
+    <legend><h1> Select position on map</h1></legend>
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <h4 id="loc_address">{{ location.loc_description_text }}</h4>   
+    {{ map_html|safe}}
+    
+    <form id="frm2" action="{% url 'plotdata:getLocation' %}" method="post" class="form">
+      {% csrf_token %}
+     
+      
+      <fieldset>
+      <input type="input" id="latitude" name="latitude" value={{location.lat}}>
+      <input type="input" id="longitude" name="longitude" value={{location.lon}}>
+      </fieldset>
+      <input type="submit" value="Get Results">
+    </form>
+      
+    <h6>PVDATA</h6>
+    {% if pvdata %}
+   
+    {% block content %}
+    <table class="json-table">
+      {% for item in pvdata %}
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in item.items %}
+        <tr>
+          <td>{{ key }}</td>
+          <td>{{ value }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      {% endfor %}
+    </table>
+    {% endblock %}
+      
+    {% endif %}
+    </form>
+       
+  </body>
+</html>

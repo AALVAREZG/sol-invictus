@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
 from django.urls import reverse
+from .forms import LocalizationForm
 from .models import Location
 # Create your views here.
 
@@ -10,6 +11,10 @@ from geopy.geocoders import Nominatim
 import folium
 from folium.plugins import MousePosition
 from jinja2 import Template
+
+
+from django.contrib.auth.decorators import login_required
+
 
 import asyncio
 import aiohttp
@@ -23,34 +28,32 @@ import json
 def index(request, location_id=None):
     if location_id:
         location = get_object_or_404(Location, pk=location_id)
-        geolocator = Nominatim(user_agent="my_application")
-        geolocation = geolocator.reverse(f"{location.lat}, {location.lon}")
         logging.info(f"""Redirected Index _ lat, lon, address: 
-              {geolocation.latitude},
-              {geolocation.longitude},
-              {geolocation.address}""")
-        zoom_start = 12
-        pvdata = asyncio.run(request_pvcalc_api(location))['outputs']['monthly']['fixed']
+              {location.lat},
+              {location.lon},
+              {location.loc_description_text}""")
+        zoom_start = 14
+        pvdata = asyncio.run(request_pvcalc_api(location))['outputs']['monthly']['fixed'][:2]
         with open("pvdata00.json", "w") as outfile:
             json.dump(pvdata, outfile)
         logging.info(pvdata)
     else:
-        geolocator = Nominatim(user_agent="my_application_name")
-        geolocation = geolocator.geocode("Madrid, Spain")
+        # get default location id=1
+        location = get_object_or_404(Location, pk=1)
         print("Index_ lat, lon, address:",
-              geolocation.latitude,
-              geolocation.longitude,
-              geolocation.address)
+              location.lat,
+              location.lon,
+              location.loc_description_text)
         zoom_start = 6
         pvdata = None
 
     map = folium.Map(
-        location=[geolocation.latitude, geolocation.longitude],
+        location=[location.lat, location.lon],
         zoom_start=zoom_start,
         width=600, height=500)
     folium.Marker(location=[
-        geolocation.latitude,
-        geolocation.longitude]).add_to(map)
+        location.lat,
+        location.lon]).add_to(map)
     MousePosition(
         position="topright",
         separator=" | ",
@@ -72,9 +75,9 @@ def index(request, location_id=None):
                                     "<br>Longitude: " + e.latlng.lng.toFixed(4)
                                     )
                         .openOn({{this._parent.get_name()}});
-                        document.getElementById("latitude").value =
+                        document.getElementById("id_latitude").value =
                                                 e.latlng.lat.toFixed(4);
-                        document.getElementById("longitude").value =
+                        document.getElementById("id_longitude").value =
                                                 e.latlng.lng.toFixed(4);
                         document.getElementById("loc_address").innerText =
                                                     "...";
@@ -90,16 +93,20 @@ def index(request, location_id=None):
     # map.add_child(folium.ClickForLatLng(alert=False))
     # Save the map to a variable
     map_html = map.get_root().render()
-    
+    localization_form = LocalizationForm()
+    localization_form.initial['latitude'] = location.lat
+    localization_form.initial['longitude'] = location.lon
     return render(request,
                   'plotdata/index.html',
                   {
-                    'geolocation': geolocation,
+                    'location': location,
                     'map_html': map_html,
                     'pvdata': pvdata,
+                    'localization_form': localization_form,
                   })
 
 
+@login_required
 def list(request):
     location_list = Location.objects.all()
     template = loader.get_template('plotdata/list.html')
@@ -171,7 +178,7 @@ def getLocation(request):
             "location from post object: ",
             request.POST['latitude'],
             request.POST['longitude'])
-        geolocator = Nominatim(user_agent="my_application")
+        geolocator = Nominatim(user_agent="otj_aoo")
         geolocation = geolocator.reverse(f"{lat}, {lon}")
         print("address:", geolocation.address)
             

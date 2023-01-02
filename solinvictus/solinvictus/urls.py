@@ -20,4 +20,5 @@ from django.urls import include, path
 urlpatterns = [
     path('plotdata/', include('plotdata.urls')),
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),  # all-auth
 ]

@@ -6,16 +6,23 @@
   </head>
   <body>
     <p>This is a location_list</p>
-    {% if location_list %}
-    <ul>
-    {% for location in location_list %}
-    </a>
-        <li><a href="/plotdata/{{ location.id }}/detail/">Hardcoded location {{ location.loc_description_text }}</a></li> 
-        <li><a href="{% url 'plotdata:edit' location.id %}">Edit location: {{ location.loc_description_text }}</a></li>
-    {% endfor %}
-    </ul>
+    {% load socialaccount %}
+    <h1>Django Allauth Tutorial</h1>
+    {% if user.is_authenticated %}
+    <p>Welcome {{ user.username }} !!!</p>
+      {% if location_list %}
+      <ul>
+      {% for location in location_list %}
+      </a>
+          <li><a href="/plotdata/{{ location.id }}/detail/">Hardcoded location {{ location.loc_description_text }}</a></li> 
+          <li><a href="{% url 'plotdata:edit' location.id %}">Edit location: {{ location.loc_description_text }}</a></li>
+      {% endfor %}
+      </ul>
+      {% else %}
+          <p>No locations available.</p>
+      {% endif %}
     {% else %}
-        <p>No locations available.</p>
+    <a href="{% provider_login_url 'github' %}">Sign Up</a>
     {% endif %}
   </body>
 </html>
