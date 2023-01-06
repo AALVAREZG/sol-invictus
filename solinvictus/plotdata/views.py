@@ -1,10 +1,11 @@
 # from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseServerError
 from django.template import loader
 from django.shortcuts import HttpResponseRedirect, get_object_or_404, render
 from django.urls import reverse
 from .forms import LocalizationForm
 from .models import Location
+from .constants import OUTOFBOUND_MESSAGE
 # Create your views here.
 
 from geopy.geocoders import Nominatim
@@ -15,7 +16,7 @@ from jinja2 import Template
 
 from django.contrib.auth.decorators import login_required
 
-
+import json
 import asyncio
 import aiohttp
 import logging
@@ -24,8 +25,9 @@ logging.basicConfig(level=logging.INFO)
 
 fmtr = "function(num) {return L.Util.formatNum(num, 3) + ' º ';};"
 
-import json
+
 def index(request, location_id=None):
+    isSea = False
     if location_id:
         location = get_object_or_404(Location, pk=location_id)
         logging.info(f"""Redirected Index _ lat, lon, address: 
@@ -33,10 +35,15 @@ def index(request, location_id=None):
               {location.lon},
               {location.loc_description_text}""")
         zoom_start = 14
-        pvdata = asyncio.run(request_pvcalc_api(location))['outputs']['monthly']['fixed'][:2]
-        with open("pvdata00.json", "w") as outfile:
-            json.dump(pvdata, outfile)
-        logging.info(pvdata)
+        if location.loc_description_text.startswith("[SEA?]"):
+            zoom_start = 6
+            pvdata = None
+            isSea = True
+        else:
+            pvdata = asyncio.run(request_pvcalc_api(location))['outputs']['monthly']['fixed'][:2]
+            with open("pvdata00.json", "w") as outfile:
+                json.dump(pvdata, outfile)
+            logging.info(pvdata)
     else:
         # get default location id=1
         location = get_object_or_404(Location, pk=1)
@@ -96,14 +103,24 @@ def index(request, location_id=None):
     localization_form = LocalizationForm()
     localization_form.initial['latitude'] = location.lat
     localization_form.initial['longitude'] = location.lon
-    return render(request,
-                  'plotdata/index.html',
-                  {
-                    'location': location,
-                    'map_html': map_html,
-                    'pvdata': pvdata,
-                    'localization_form': localization_form,
-                  })
+    if (location.is_within_limits()[0] & (not isSea)):
+        return render(request,
+                    'plotdata/index.html',
+                    {
+                        'location': location,
+                        'map_html': map_html,
+                        'pvdata': pvdata,
+                        'localization_form': localization_form,
+                    })
+    else:
+        return render(request,
+                     'plotdata/index.html',
+                        {'location': location,
+                        'map_html': map_html,
+                        'localization_form': localization_form,
+                        'error_message': OUTOFBOUND_MESSAGE,
+                        'pvdata': None,
+                        })
 
 
 @login_required
@@ -170,7 +187,6 @@ def save(request, location_id):
 
 def getLocation(request):
     print("get LOCATION.........")
-    "GUARDAR NUEVA LOCATION (CAMBIAR EL MODEL SI ES NECESARIO)"
     try:
         lat = request.POST['latitude']
         lon = request.POST['longitude']
@@ -180,15 +196,17 @@ def getLocation(request):
             request.POST['longitude'])
         geolocator = Nominatim(user_agent="otj_aoo")
         geolocation = geolocator.reverse(f"{lat}, {lon}")
-        print("address:", geolocation.address)
-            
+        address = geolocation.address
+
     except Exception as e:
-        print("Error: ", e)
-    else:
+        logging.error("Error in location API: ", e)
+        address = "[SEA?] No address available for this location"
+
+    finally:
         newlocation = Location.objects.create(
                                             lat=lat,
                                             lon=lon,
-                                            loc_description_text=geolocation.address
+                                            loc_description_text=address
                                             )
         newlocation.save()
         return HttpResponseRedirect(
@@ -219,7 +237,7 @@ async def request_pvcalc_api(location, peakpower='1', systemloss='14'):
         async with session.get(url) as response:
             # Process the response
             data = await response.json()
-            logging.info("data received")
+            logging.info("data received...")
     return data
 
 
